@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BlogPost extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'title',
@@ -21,6 +23,17 @@ class BlogPost extends Model
 
     public function user(){
         return $this->belongsTo(BlogPost::class);
+    }
+
+
+    static public function boot(){
+        parent::boot();
+        
+        static::deleting(function(BlogPost $blogPost){
+            $blogPost->comments()->delete();
+        });
+        
+        
     }
 
   
