@@ -22,7 +22,7 @@ class BlogPost extends Model
     }
 
     public function user(){
-        return $this->belongsTo(BlogPost::class);
+        return $this->belongsTo(User::class);
     }
 
 

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreRequest;
 use App\Models\BlogPost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+
 
 class PostsController extends Controller
 {
@@ -29,7 +32,7 @@ class PostsController extends Controller
      */
     public function index()
     {
-        return view('posts.index',[ 'posts' => BlogPost::all() ]);
+        return view('posts.index',[ 'posts' => BlogPost::withCount('comments')->get() ]);
 
     }
 
@@ -57,6 +60,7 @@ class PostsController extends Controller
         $post = new BlogPost();
         $post->title = $validated['title']; 
         $post->content = $validated['content']; 
+        $post->user_id = Auth::user()->id;
         $post->save();
 
         $request->session()->flash('status','İcerik başarıyla kayıt edilmiştir');
@@ -85,8 +89,17 @@ class PostsController extends Controller
      */
     public function edit($id)
     {
-        return view('posts.edit',['post' => BlogPost::findOrFail($id)]);
+        $post =  BlogPost::findOrFail($id);
+        
+        $this->authorize($post);
+/* 
+        if( ! Gate::allows('update-post', $post )  ){
+            abort(403,'BU KAYDI GÜNCELLEYEMEZSİNİZ');
+        }
+        
+ */
 
+        return view('posts.edit',['post' => $post]);
         //return view('posts.edit',['post' => BlogPost::findOrFail($id) ]);
         //return view('posts.show',[ 'post' => BlogPost::find($id) ]);
 
@@ -102,6 +115,10 @@ class PostsController extends Controller
     public function update(StoreRequest $request, $id)
     {
         $post = BlogPost::findOrFail($id);
+
+        $this->authorize($post);
+
+
         $validated = $request->validated();
         /*
         $post->title = $validated['title'];
@@ -126,6 +143,8 @@ class PostsController extends Controller
     public function destroy($id)
     {
         $post = BlogPost::findOrFail($id);
+        $this->authorize($post);
+
         $post->delete();
 
         request()->session()->flash('status', $id.' numaralı kaydınız Başarıyla silinmiştir.');
