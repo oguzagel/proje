@@ -26,14 +26,19 @@ class BlogPost extends Model
     }
 
 
-    static public function boot(){
+    public static function boot(){
         parent::boot();
         
         static::deleting(function(BlogPost $blogPost){
             $blogPost->comments()->delete();
         });
         
-        
+    
+        static::restoring(function(BlogPost $blogPost){
+            $blogPost->comments()->restore();
+        });
+    
+
     }
 
   
